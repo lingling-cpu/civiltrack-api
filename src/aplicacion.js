@@ -1,16 +1,16 @@
-const express = require('express');
-const rutasEstado = require('./rutas/estado.rutas');
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
 
+app.use(cors());
+
+/* Middlewares */
 app.use(express.json());
 
-app.get('/', (req, res) => {
-    res.send('API CivilTrack funcionando');
-});
-
-// rutas
-app.use('/api', rutasEstado);
+/* Rutas */
+const estadoRutas = require("./rutas/estado.rutas");
+app.use("/api", estadoRutas);
 
 module.exports = app;
 
