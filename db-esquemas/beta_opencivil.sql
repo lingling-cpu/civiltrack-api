@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 16-03-2026 a las 05:51:21
+-- Tiempo de generación: 20-03-2026 a las 06:44:12
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -72,7 +72,10 @@ CREATE TABLE `proyectos` (
 
 INSERT INTO `proyectos` (`id_proyecto`, `id_creador`, `nombre`, `descripcion`, `ubicacion`, `fecha_inicio`, `fecha_creacion`, `activo`) VALUES
 (1, 1, 'Proyecto Beta', 'Versión de prueba del sistema', 'Puebla, Mexico', '2026-03-03', '2026-03-04 00:52:55', 1),
-(2, 4, 'Proyecto Gamma', 'Proyecto de prueba', 'CDMX', '2026-04-01', '2026-04-01 06:00:00', 1);
+(2, 4, 'Proyecto Gamma', 'Proyecto de prueba', 'CDMX', '2026-04-01', '2026-04-01 06:00:00', 0),
+(3, 4, 'Proyecto Alfa', 'Intento de edición', 'CDMX', '2026-02-01', '2026-01-01 06:00:00', 1),
+(4, 1, 'Proyecto B', 'Proyecto del usuario B', 'CDMX', '2026-01-01', '2026-01-01 06:00:00', 1),
+(5, 3, 'Proyecto C', 'Proyecto del usuario C', 'CDMX', '2026-01-01', '2026-01-01 06:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -170,7 +173,7 @@ ALTER TABLE `fotos`
 -- AUTO_INCREMENT de la tabla `proyectos`
 --
 ALTER TABLE `proyectos`
-  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
