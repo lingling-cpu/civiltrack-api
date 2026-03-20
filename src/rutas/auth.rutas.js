@@ -1,3 +1,4 @@
+const rateLimit = require("express-rate-limit");
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -5,7 +6,15 @@ const db = require("../config/db");
 
 const router = express.Router();
 
-router.post("/login", async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 5, // máximo 5 intentos por IP
+  message: {
+    error: "Demasiados intentos, porfavor intente después"
+  }
+});
+
+router.post("/login", loginLimiter, async (req, res) => {
   const { correo, password } = req.body;
 
   try {
