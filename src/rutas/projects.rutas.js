@@ -39,7 +39,7 @@ router.get("/projects", verificarToken, async (req, res) => {
    POST /api/projects
    =============================== */
 router.post("/projects", verificarToken, async (req, res) => {
-
+ 
   const { id_proyecto, id_creador, nombre, descripcion, ubicacion, fecha_inicio, fecha_creacion, activo } = req.body;
 
   try {
@@ -65,16 +65,44 @@ router.post("/projects", verificarToken, async (req, res) => {
 
 /* ===============================
    PUT /api/projects/:id
-   (estructura por ahora)
    =============================== */
 router.put("/projects/:id", verificarToken, async (req, res) => {
 
   const id = req.params.id;
+  const { nombre, descripcion, ubicacion, fecha_inicio } = req.body;
 
-  res.json({
-    mensaje: "Endpoint para editar proyecto listo",
-    id
-  });
+  try {
+
+    // 1. Obtener proyecto
+    const [rows] = await db.query(
+      "SELECT id_creador FROM proyectos WHERE id_proyecto = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ mensaje: "Proyecto no encontrado" });
+    }
+
+    const proyecto = rows[0];
+
+    // 2. Validar dueño
+    if (req.usuario.rol !== "admin" && proyecto.id_creador !== req.usuario.id) {
+      return res.status(403).json({ mensaje: "No autorizado" });
+    }
+
+    // 3. Ejecutar update
+    await db.query(
+      `UPDATE proyectos 
+       SET nombre = ?, descripcion = ?, ubicacion = ?, fecha_inicio = ?
+       WHERE id_proyecto = ?`,
+      [nombre, descripcion, ubicacion, fecha_inicio, id]
+    );
+
+    res.json({ mensaje: "Proyecto actualizado" });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 
 });
 
@@ -89,14 +117,30 @@ router.delete("/projects/:id", verificarToken, async (req, res) => {
 
   try {
 
+    // 1. Obtener proyecto
+    const [rows] = await db.query(
+      "SELECT id_creador FROM proyectos WHERE id_proyecto = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ mensaje: "Proyecto no encontrado" });
+    }
+
+    const proyecto = rows[0];
+
+    // 2. Verificar dueño (o permitir admin)
+    if (req.usuario.rol !== "admin" && proyecto.id_creador !== req.usuario.id) {
+      return res.status(403).json({ mensaje: "No autorizado" });
+    }
+
+    // 3. Soft delete
     await db.query(
       "UPDATE proyectos SET activo = false WHERE id_proyecto = ?",
       [id]
     );
 
-    res.json({
-      mensaje: "Proyecto desactivado"
-    });
+    res.json({ mensaje: "Proyecto desactivado" });
 
   } catch (error) {
     res.status(500).json({ error: error.message });
