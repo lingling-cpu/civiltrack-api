@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 20-03-2026 a las 06:44:12
+-- Tiempo de generación: 21-03-2026 a las 21:45:38
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -72,10 +72,11 @@ CREATE TABLE `proyectos` (
 
 INSERT INTO `proyectos` (`id_proyecto`, `id_creador`, `nombre`, `descripcion`, `ubicacion`, `fecha_inicio`, `fecha_creacion`, `activo`) VALUES
 (1, 1, 'Proyecto Beta', 'Versión de prueba del sistema', 'Puebla, Mexico', '2026-03-03', '2026-03-04 00:52:55', 1),
-(2, 4, 'Proyecto Gamma', 'Proyecto de prueba', 'CDMX', '2026-04-01', '2026-04-01 06:00:00', 0),
+(2, 4, 'Proyecto Gamma', 'Proyecto de prueba', 'CDMX', '2026-04-01', '2026-04-01 06:00:00', 1),
 (3, 4, 'Proyecto Alfa', 'Intento de edición', 'CDMX', '2026-02-01', '2026-01-01 06:00:00', 1),
 (4, 1, 'Proyecto B', 'Proyecto del usuario B', 'CDMX', '2026-01-01', '2026-01-01 06:00:00', 1),
-(5, 3, 'Proyecto C', 'Proyecto del usuario C', 'CDMX', '2026-01-01', '2026-01-01 06:00:00', 1);
+(5, 3, 'Proyecto C', 'Proyecto del usuario C', 'CDMX', '2026-01-01', '2026-01-01 06:00:00', 1),
+(6, 4, 'Proyecto D2', 'Intento de edición', 'CDMX', '2026-02-01', '2026-01-01 06:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -108,10 +109,10 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombre`, `correo`, `password`, `rol`, `fecha_registro`) VALUES
-(1, 'Edgar', 'admin@opencivil.com', 'password123', 'admin', '2026-03-04 00:52:55'),
-(2, 'Ana', 'ana.db@opencivil.com', 'secreto123', 'admin', '2026-03-04 00:55:58'),
-(3, 'Omar', 'omar.front@opencivil.com', 'secreto123', 'residente', '2026-03-04 00:55:58'),
-(4, 'Cristian', 'cristian.back@opencivil.com', 'secreto123', 'residente', '2026-03-04 00:55:58');
+(1, 'Edgar', 'admin@opencivil.com', '$2b$10$nzZhAShOFn09r4ZHrzO0zel6q0v1mNSvDpiDYqHbjnLtmWrU5ZODa', 'admin', '2026-03-04 00:52:55'),
+(2, 'Ana', 'ana.db@opencivil.com', '$2b$10$0VaVwROB5WSFPrjukl2KOed0yzyjS6CpTfEu0Pbn.hVWJUWc6CQCa', 'admin', '2026-03-04 00:55:58'),
+(3, 'Omar', 'omar.front@opencivil.com', '$2b$10$VSd0L5MBRS5MWd5fFPDCtewDT2FeTOK3w/4QKKchrz1mKJYObEMWK', 'residente', '2026-03-04 00:55:58'),
+(4, 'Cristian', 'cristian.back@opencivil.com', '$2b$10$76.HQibYv8cjW18la/qF8uigmxYK3ehV8WFQk7txsbXw5T7Ry2Sby', 'residente', '2026-03-04 00:55:58');
 
 --
 -- Índices para tablas volcadas
@@ -173,7 +174,7 @@ ALTER TABLE `fotos`
 -- AUTO_INCREMENT de la tabla `proyectos`
 --
 ALTER TABLE `proyectos`
-  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
