@@ -2,13 +2,11 @@ const jwt = require("jsonwebtoken");
 
 function verificarToken(req, res, next) {
 
-  const authHeader = req.headers["authorization"];
+  const token = req.cookies.token; // CAMBIO COOKIES
 
-  if (!authHeader) {
-    return res.status(401).json({ mensaje: "Token requerido" });
+  if (!token) {
+    return res.status(401).json({ mensaje: "No autenticado" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
 

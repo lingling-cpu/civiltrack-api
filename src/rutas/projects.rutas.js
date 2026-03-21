@@ -40,7 +40,12 @@ router.get("/projects", verificarToken, async (req, res) => {
    =============================== */
 router.post("/projects", verificarToken, async (req, res) => {
  
-  const { id_proyecto, id_creador, nombre, descripcion, ubicacion, fecha_inicio, fecha_creacion, activo } = req.body;
+  const { id_proyecto, nombre, descripcion, ubicacion, fecha_inicio, fecha_creacion, activo } = req.body;
+
+  // FORZAR usuario del token
+  const id_creador = req.usuario.id;
+
+  console.log("Usuario autenticado:", id_creador);
 
   try {
 

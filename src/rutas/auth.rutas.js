@@ -7,8 +7,8 @@ const db = require("../config/db");
 const router = express.Router();
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // máximo 5 intentos por IP
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: {
     error: "Demasiados intentos, porfavor intente después"
   }
@@ -30,7 +30,8 @@ router.post("/login", loginLimiter, async (req, res) => {
 
     const usuario = rows[0];
 
-    const passwordValido = password === usuario.password;
+    // Usar bcrypt
+    const passwordValido = await bcrypt.compare(password, usuario.password);
 
     if (!passwordValido) {
       return res.status(401).json({ message: "Contraseña incorrecta" });
@@ -45,8 +46,17 @@ router.post("/login", loginLimiter, async (req, res) => {
       { expiresIn: "8h" }
     );
 
+    // ENVIAR TOKEN COMO COOKIE
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // true en producción (HTTPS)
+      sameSite: "strict",
+      maxAge: 8 * 60 * 60 * 1000 // 8 horas
+    });
+
+    // YA NO ENVIAR TOKEN
     res.json({
-      token,
+      mensaje: "Login exitoso",
       usuario: {
         id: usuario.id_usuario,
         nombre: usuario.nombre,
