@@ -4,69 +4,107 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const db = require("../config/db");
 
+// VALIDADOR
+const { body, validationResult } = require("express-validator");
+
 const router = express.Router();
 
+/* ===============================
+   RATE LIMIT LOGIN
+   =============================== */
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: {
-    error: "Demasiados intentos, porfavor intente después"
+    error: "Demasiados intentos, por favor intente después"
   }
 });
 
-router.post("/login", loginLimiter, async (req, res) => {
-  const { correo, password } = req.body;
+/* ===============================
+   POST /api/auth/login
+   =============================== */
+router.post(
+  "/login",
+  loginLimiter,
 
-  try {
+  // VALIDACIONES
+  [
+    body("correo")
+      .isEmail()
+      .withMessage("Correo inválido")
+      .normalizeEmail(),
 
-    const [rows] = await db.query(
-      "SELECT * FROM usuarios WHERE correo = ?",
-      [correo]
-    );
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("La contraseña debe tener al menos 6 caracteres")
+      .trim()
+  ],
 
-    if (rows.length === 0) {
-      return res.status(401).json({ message: "Usuario no encontrado" });
+  async (req, res) => {
+
+    // VALIDAR ERRORES
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errores: errors.array()
+      });
     }
 
-    const usuario = rows[0];
+    const { correo, password } = req.body;
 
-    // Usar bcrypt
-    const passwordValido = await bcrypt.compare(password, usuario.password);
+    try {
 
-    if (!passwordValido) {
-      return res.status(401).json({ message: "Contraseña incorrecta" });
-    }
+      const [rows] = await db.query(
+        "SELECT * FROM usuarios WHERE correo = ?",
+        [correo]
+      );
 
-    const token = jwt.sign(
-      {
-        id: usuario.id_usuario,
-        rol: usuario.rol
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "8h" }
-    );
-
-    // ENVIAR TOKEN COMO COOKIE
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // true en producción (HTTPS)
-      sameSite: "strict",
-      maxAge: 8 * 60 * 60 * 1000 // 8 horas
-    });
-
-    // YA NO ENVIAR TOKEN
-    res.json({
-      mensaje: "Login exitoso",
-      usuario: {
-        id: usuario.id_usuario,
-        nombre: usuario.nombre,
-        rol: usuario.rol
+      if (rows.length === 0) {
+        return res.status(401).json({ message: "Usuario no encontrado" });
       }
-    });
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+      const usuario = rows[0];
+
+      // bcrypt
+      const passwordValido = await bcrypt.compare(password, usuario.password);
+
+      if (!passwordValido) {
+        return res.status(401).json({ message: "Contraseña incorrecta" });
+      }
+
+      // JWT
+      const token = jwt.sign(
+        {
+          id: usuario.id_usuario,
+          rol: usuario.rol
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "8h" }
+      );
+
+      // COOKIE SEGURA
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false, // true en producción (HTTPS)
+        sameSite: "strict",
+        maxAge: 8 * 60 * 60 * 1000
+      });
+
+      // RESPUESTA SIN TOKEN
+      res.json({
+        mensaje: "Login exitoso",
+        usuario: {
+          id: usuario.id_usuario,
+          nombre: usuario.nombre,
+          rol: usuario.rol
+        }
+      });
+
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+
   }
-});
+);
 
 module.exports = router;
