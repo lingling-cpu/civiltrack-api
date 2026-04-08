@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 21-03-2026 a las 21:45:38
+-- Tiempo de generación: 08-04-2026 a las 21:44:02
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -36,6 +36,13 @@ CREATE TABLE `bitacora` (
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `bitacora`
+--
+
+INSERT INTO `bitacora` (`id_bitacora`, `id_proyecto`, `id_usuario`, `titulo`, `descripcion`, `fecha_registro`) VALUES
+(6, 4, 4, 'Reporte ', 'Prueba ', '2026-04-08 19:29:22');
+
 -- --------------------------------------------------------
 
 --
@@ -48,6 +55,13 @@ CREATE TABLE `fotos` (
   `url_foto` varchar(255) NOT NULL,
   `fecha_subida` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `fotos`
+--
+
+INSERT INTO `fotos` (`id_foto`, `id_bitacora`, `url_foto`, `fecha_subida`) VALUES
+(6, 6, 'https://res.cloudinary.com/dp8tfzxuh/image/upload/v1775676562/bitacora/weob6jdt3bbam6qcljg1.png', '2026-04-08 19:29:22');
 
 -- --------------------------------------------------------
 
@@ -162,19 +176,19 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `bitacora`
 --
 ALTER TABLE `bitacora`
-  MODIFY `id_bitacora` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_bitacora` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `fotos`
 --
 ALTER TABLE `fotos`
-  MODIFY `id_foto` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_foto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `proyectos`
 --
 ALTER TABLE `proyectos`
-  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_proyecto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
