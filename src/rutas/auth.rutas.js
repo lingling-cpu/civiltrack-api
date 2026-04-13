@@ -6,6 +6,7 @@ const db = require("../config/db");
 
 // VALIDADOR
 const { body, validationResult } = require("express-validator");
+const verificarToken = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
@@ -106,5 +107,27 @@ router.post(
 
   }
 );
+
+/* ===============================
+   GET /api/auth/me
+   =============================== */
+router.get("/me", verificarToken, async (req, res) => {
+  try {
+
+    const [rows] = await db.query(
+      "SELECT id_usuario, nombre, correo, rol FROM usuarios WHERE id_usuario = ?",
+      [req.usuario.id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    res.json({ usuario: rows[0] });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;

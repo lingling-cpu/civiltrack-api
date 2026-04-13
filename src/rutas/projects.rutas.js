@@ -171,7 +171,7 @@ router.delete("/projects/:id", verificarToken, async (req, res) => {
 router.post(
   "/proyectos/:id/bitacora",
   verificarToken,
-  upload.single("archivo"),
+  upload.single("imagen"),
   async (req, res) => {
 
     const id_proyecto = req.params.id;
