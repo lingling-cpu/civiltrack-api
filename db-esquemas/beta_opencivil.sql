@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 08-04-2026 a las 21:44:02
+-- Tiempo de generación: 17-04-2026 a las 08:08:24
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -41,7 +41,10 @@ CREATE TABLE `bitacora` (
 --
 
 INSERT INTO `bitacora` (`id_bitacora`, `id_proyecto`, `id_usuario`, `titulo`, `descripcion`, `fecha_registro`) VALUES
-(6, 4, 4, 'Reporte ', 'Prueba ', '2026-04-08 19:29:22');
+(6, 4, 4, 'Reporte ', 'Prueba ', '2026-04-08 19:29:22'),
+(7, 4, 1, 'Reporte 2', 'Prueba 2 ', '2026-04-17 05:42:05'),
+(8, 2, 4, 'Reporte prueba', 'Prueba  ', '2026-04-17 06:00:52'),
+(9, 4, 4, 'Reporte 3', 'Prueba  ', '2026-04-17 06:01:49');
 
 -- --------------------------------------------------------
 
@@ -176,7 +179,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `bitacora`
 --
 ALTER TABLE `bitacora`
-  MODIFY `id_bitacora` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_bitacora` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `fotos`
