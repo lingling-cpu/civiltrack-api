@@ -180,7 +180,6 @@ router.post(
 
     try {
 
-      // VALIDACIONES
       if (!titulo || !descripcion) {
         return res.status(400).json({ error: "Título y descripción requeridos" });
       }
@@ -189,7 +188,6 @@ router.post(
         return res.status(400).json({ error: "Archivo requerido" });
       }
 
-      // SUBIR A CLOUDINARY
       const subirArchivo = () => {
         return new Promise((resolve, reject) => {
 
@@ -208,7 +206,6 @@ router.post(
       const resultado = await subirArchivo();
       const url = resultado.secure_url;
 
-      // INSERTAR BITÁCORA
       const [bitacoraResult] = await db.query(
         `INSERT INTO bitacora (id_proyecto, id_usuario, titulo, descripcion, fecha_registro)
          VALUES (?, ?, ?, ?, NOW())`,
@@ -217,14 +214,12 @@ router.post(
 
       const id_bitacora = bitacoraResult.insertId;
 
-      // INSERTAR FOTO
       await db.query(
         `INSERT INTO fotos (id_bitacora, url_foto, fecha_subida)
          VALUES (?, ?, NOW())`,
         [id_bitacora, url]
       );
 
-      // RESPUESTA FINAL
       res.status(201).json({
         mensaje: "Bitácora creada",
         bitacora_id: id_bitacora,
@@ -233,6 +228,88 @@ router.post(
 
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+
+  }
+);
+
+/* ===============================
+   GET /api/proyectos/:id_proyecto/bitacora
+   =============================== */
+router.get(
+  "/proyectos/:id_proyecto/bitacora",
+  verificarToken,
+  async (req, res) => {
+
+    const { id_proyecto } = req.params;
+
+    try {
+
+      // Proyecto
+      const [proyectoRows] = await db.query(
+        "SELECT nombre FROM proyectos WHERE id_proyecto = ?",
+        [id_proyecto]
+      );
+
+      if (proyectoRows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: "Proyecto no encontrado"
+        });
+      }
+
+      // Bitácora + fotos
+      const [rows] = await db.query(
+        `SELECT 
+          b.id_bitacora,
+          b.titulo,
+          b.descripcion,
+          b.fecha_registro,
+          u.nombre AS autor,
+          f.url_foto
+        FROM bitacora b
+        LEFT JOIN usuarios u ON b.id_usuario = u.id_usuario
+        LEFT JOIN fotos f ON b.id_bitacora = f.id_bitacora
+        WHERE b.id_proyecto = ?
+        ORDER BY b.fecha_registro DESC`,
+        [id_proyecto]
+      );
+
+      // Agrupar
+      const mapa = {};
+
+      rows.forEach(row => {
+
+        if (!mapa[row.id_bitacora]) {
+          mapa[row.id_bitacora] = {
+            id_bitacora: row.id_bitacora,
+            titulo: row.titulo,
+            descripcion: row.descripcion,
+            fecha_registro: row.fecha_registro,
+            autor: row.autor,
+            fotos: []
+          };
+        }
+
+        if (row.url_foto) {
+          mapa[row.id_bitacora].fotos.push(row.url_foto);
+        }
+
+      });
+
+      res.json({
+        success: true,
+        proyecto: {
+          nombre: proyectoRows[0].nombre
+        },
+        reportes: Object.values(mapa)
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message
+      });
     }
 
   }
