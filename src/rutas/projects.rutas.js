@@ -253,20 +253,34 @@ router.get(
 
     try {
 
-      // Proyecto
-      const [proyectoRows] = await db.query(
-        "SELECT nombre FROM proyectos WHERE id_proyecto = ?",
-        [id_proyecto]
-      );
+      // VALIDAR PERMISOS
+      let queryPermiso;
+      let paramsPermiso = [id_proyecto];
 
-      if (proyectoRows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: "Proyecto no encontrado"
-        });
+      if (req.usuario.rol === "admin") {
+        queryPermiso = `
+          SELECT nombre 
+          FROM proyectos 
+          WHERE id_proyecto = ?
+        `;
+      } else {
+        queryPermiso = `
+          SELECT nombre 
+          FROM proyectos 
+          WHERE id_proyecto = ? AND id_creador = ?
+        `;
+        paramsPermiso.push(req.usuario.id);
       }
 
-      // Bitácora + fotos
+      const [proyectoRows] = await db.query(queryPermiso, paramsPermiso);
+
+      if (proyectoRows.length === 0) {
+        return res.status(403).json({
+          success: false,
+          message: "No tienes permiso para ver este proyecto"
+        });
+      }
+      
       const [rows] = await db.query(
         `SELECT 
           b.id_bitacora,
