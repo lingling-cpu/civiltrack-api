@@ -179,33 +179,37 @@ router.post(
     const { titulo, descripcion } = req.body;
 
     try {
-
+      
+      // VALIDACIÓN
       if (!titulo || !descripcion) {
         return res.status(400).json({ error: "Título y descripción requeridos" });
       }
 
-      if (!req.file) {
-        return res.status(400).json({ error: "Archivo requerido" });
+      let url = null;
+
+      // SOLO subir si hay archivo
+      if (req.file) {
+
+        const subirArchivo = () => {
+          return new Promise((resolve, reject) => {
+
+            const stream = cloudinary.uploader.upload_stream(
+              { folder: "bitacora" },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              }
+            );
+
+            streamifier.createReadStream(req.file.buffer).pipe(stream);
+          });
+        };
+
+        const resultado = await subirArchivo();
+        url = resultado.secure_url;
       }
 
-      const subirArchivo = () => {
-        return new Promise((resolve, reject) => {
-
-          const stream = cloudinary.uploader.upload_stream(
-            { folder: "bitacora" },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
-
-          streamifier.createReadStream(req.file.buffer).pipe(stream);
-        });
-      };
-
-      const resultado = await subirArchivo();
-      const url = resultado.secure_url;
-
+      // INSERTAR BITÁCORA SIEMPRE
       const [bitacoraResult] = await db.query(
         `INSERT INTO bitacora (id_proyecto, id_usuario, titulo, descripcion, fecha_registro)
          VALUES (?, ?, ?, ?, NOW())`,
@@ -214,16 +218,20 @@ router.post(
 
       const id_bitacora = bitacoraResult.insertId;
 
-      await db.query(
-        `INSERT INTO fotos (id_bitacora, url_foto, fecha_subida)
-         VALUES (?, ?, NOW())`,
-        [id_bitacora, url]
-      );
+      // INSERTAR FOTO SOLO SI EXISTE
+      if (url) {
+        await db.query(
+          `INSERT INTO fotos (id_bitacora, url_foto, fecha_subida)
+           VALUES (?, ?, NOW())`,
+          [id_bitacora, url]
+        );
+      }
 
+      // RESPUESTA
       res.status(201).json({
         mensaje: "Bitácora creada",
         bitacora_id: id_bitacora,
-        url: url
+        url: url // puede ser null
       });
 
     } catch (error) {
