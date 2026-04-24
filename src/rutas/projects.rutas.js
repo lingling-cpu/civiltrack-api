@@ -9,6 +9,8 @@ const upload = require("../middlewares/upload.middleware");
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
 
+const PDFDocument = require("pdfkit");
+const axios = require("axios");
 /* ===============================
    GET /api/projects
    =============================== */
@@ -332,6 +334,189 @@ router.get(
         success: false,
         error: error.message
       });
+    }
+
+  }
+);
+
+/* ===============================
+   GET /api/proyectos/:id_proyecto/pdf
+   =============================== */
+router.get(
+  "/proyectos/:id_proyecto/pdf",
+  verificarToken,
+  async (req, res) => {
+
+    const { id_proyecto } = req.params;
+
+    try {
+
+      //Validar permisos
+      let queryPermiso;
+      let paramsPermiso = [id_proyecto];
+
+      if (req.usuario.rol === "admin") {
+        queryPermiso = `
+          SELECT nombre 
+          FROM proyectos 
+          WHERE id_proyecto = ?
+        `;
+      } else {
+        queryPermiso = `
+          SELECT nombre 
+          FROM proyectos 
+          WHERE id_proyecto = ? AND id_creador = ?
+        `;
+        paramsPermiso.push(req.usuario.id);
+      }
+
+      const [proyectoRows] = await db.query(queryPermiso, paramsPermiso);
+
+      if (proyectoRows.length === 0) {
+        return res.status(403).json({ message: "No autorizado" });
+      }
+
+      const nombreProyecto = proyectoRows[0].nombre;
+
+      //Query
+      const [rows] = await db.query(
+        `SELECT 
+          b.id_bitacora,
+          b.titulo,
+          b.descripcion,
+          b.fecha_registro,
+          u.nombre AS autor,
+          f.url_foto
+        FROM bitacora b
+        LEFT JOIN usuarios u ON b.id_usuario = u.id_usuario
+        LEFT JOIN fotos f ON b.id_bitacora = f.id_bitacora
+        WHERE b.id_proyecto = ?
+        ORDER BY b.fecha_registro DESC`,
+        [id_proyecto]
+      );
+
+      //Agrupar
+      const mapa = {};
+
+      rows.forEach(row => {
+        if (!mapa[row.id_bitacora]) {
+          mapa[row.id_bitacora] = {
+            titulo: row.titulo,
+            descripcion: row.descripcion,
+            fecha_registro: row.fecha_registro,
+            autor: row.autor,
+            fotos: []
+          };
+        }
+
+        if (row.url_foto) {
+          mapa[row.id_bitacora].fotos.push(row.url_foto);
+        }
+      });
+
+      const reportes = Object.values(mapa);
+
+      //PDF
+      const doc = new PDFDocument({
+        size: "LETTER",
+        margin: 50
+      });
+
+      doc.on("error", (err) => {
+        console.error("PDF error:", err);
+      });
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `inline; filename=reporte_${id_proyecto}.pdf`
+      );
+
+      doc.pipe(res);
+
+      //Header
+      doc.fontSize(20).fillColor("#0a3d62")
+        .text("Reporte de Obra", { align: "center" });
+
+      doc.moveDown(0.5);
+
+      doc.fontSize(16).fillColor("#000")
+        .text(nombreProyecto, { align: "center" });
+
+      doc.moveDown(2);
+
+      //Contenido
+      for (const reporte of reportes) {
+
+        const fecha = new Date(reporte.fecha_registro);
+
+        const fechaFormateada = fecha.toLocaleDateString("es-MX", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        });
+
+        const hora = fecha.toLocaleTimeString("es-MX", {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+
+        doc.fontSize(12).fillColor("#3a3a3a")
+          .text(`${fechaFormateada} - ${hora}`);
+
+        doc.text(`${reporte.autor}`);
+
+        doc.moveDown(0.5);
+
+        doc.fontSize(15).fillColor("#000")
+          .text(reporte.titulo, { underline: true });
+
+        doc.moveDown(0.5);
+
+        doc.fontSize(14).fillColor("#000")
+          .text(reporte.descripcion, { align: "justify" });
+
+        doc.moveDown();
+
+        //Imagenes
+        for (const url of reporte.fotos) {
+          try {
+
+            const response = await axios.get(url, {
+              responseType: "arraybuffer"
+            });
+
+            const buffer = Buffer.from(response.data, "binary");
+
+            doc.image(buffer, {
+              fit: [250, 250],   // tamaño máximo
+              align: "center"  
+            });
+
+            doc.moveDown();
+
+          } catch (error) {
+            console.log("Error cargando imagen:", error.message);
+          }
+        }
+
+        doc.moveDown();
+
+        // Separador
+        doc.strokeColor("#cccccc")
+          .lineWidth(1)
+          .moveTo(50, doc.y)
+          .lineTo(550, doc.y)
+          .stroke();
+
+        doc.moveDown(1.5);
+      }
+
+      doc.end();
+
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
 
   }
