@@ -7,7 +7,7 @@ const db = mysql.createPool({
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "beta_opencivil",
-  ssl: { rejectUnauthorized: true },            // ← NUEVO
+  ssl: { rejectUnauthorized: false },            // ← NUEVO
 });
 
 module.exports = db;
