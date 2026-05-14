@@ -1,9 +1,11 @@
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const cookieParser = require("cookie-parser"); 
+const cookieParser = require("cookie-parser");
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 /* ===============================
    SEGURIDAD
@@ -12,7 +14,7 @@ app.use(helmet());
 
 app.use(cors({
   origin: process.env.FRONTEND_URL,
-  credentials: true 
+  credentials: true
 }));
 
 app.use(express.json({ limit: "10kb" }));
