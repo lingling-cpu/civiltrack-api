@@ -3,9 +3,11 @@ require("dotenv").config();
 
 const db = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
+  port: process.env.DB_PORT,                    // ← NUEVO
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "beta_opencivil"
+  database: process.env.DB_NAME || "beta_opencivil",
+  ssl: { rejectUnauthorized: true },            // ← NUEVO
 });
 
 module.exports = db;
