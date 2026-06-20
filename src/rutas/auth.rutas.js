@@ -80,7 +80,7 @@ router.post(
           rol: usuario.rol
         },
         process.env.JWT_SECRET,
-        { expiresIn: "8h" }
+        { expiresIn: "15m" }
       );
 
       // COOKIE SEGURA
@@ -88,7 +88,7 @@ router.post(
         httpOnly: true,
         secure: false, // true en producción (HTTPS)
         sameSite: "strict",
-        maxAge: 8 * 60 * 60 * 1000
+        maxAge: 15 * 60 * 1000
       });
 
       // RESPUESTA SIN TOKEN
@@ -128,6 +128,23 @@ router.get("/me", verificarToken, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+/* ===============================
+   POST /api/auth/logout
+   =============================== */
+router.post("/logout", (req, res) => {
+
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict"
+  });
+
+  res.json({
+    mensaje: "Sesión cerrada correctamente"
+  });
+
 });
 
 module.exports = router;

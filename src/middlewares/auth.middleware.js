@@ -2,10 +2,12 @@ const jwt = require("jsonwebtoken");
 
 function verificarToken(req, res, next) {
 
-  const token = req.cookies.token; // CAMBIO COOKIES
+  const token = req.cookies.token;
 
   if (!token) {
-    return res.status(401).json({ mensaje: "No autenticado" });
+    return res.status(401).json({
+      mensaje: "Sesión expirada"
+    });
   }
 
   try {
@@ -14,11 +16,34 @@ function verificarToken(req, res, next) {
 
     req.usuario = decoded;
 
+    // Renovar sesión otros 15 minutos
+    const nuevoToken = jwt.sign(
+      {
+        id: decoded.id,
+        rol: decoded.rol
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m"
+      }
+    );
+
+    res.cookie("token", nuevoToken, {
+      httpOnly: true,
+      secure: false, // true con HTTPS
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000
+    });
+
     next();
 
   } catch (error) {
 
-    return res.status(403).json({ mensaje: "Token inválido" });
+    res.clearCookie("token");
+
+    return res.status(401).json({
+      mensaje: "Sesión expirada"
+    });
 
   }
 
